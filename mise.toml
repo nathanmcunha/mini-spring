@@ -1,0 +1,3 @@
+[tools]
+"aqua:gradle/gradle" = "latest"
+java = "temurin-21"

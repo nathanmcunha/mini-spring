@@ -1,0 +1,32 @@
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# IntelliJ
+.idea/
+*.iml
+out/
+
+# VS Code
+.vscode/
+
+# Build artifacts
+bin/
+*.jar
+*.war
+*.zip
+*.log
+*.class
+
+# Operating System specific
+.DS_Store
+
+# Gemini specific files
+GEMINI.md
