@@ -1,14 +1,22 @@
 package com.nathanmcunha.minispring;
 
-   public class MiniSpringApp {
-    public static void main(String[] args) {
-        System.out.println("Java Version: " + System.getProperty("java.version"));
+import com.sun.net.httpserver.HttpServer;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.concurrent.Executors;
 
-        var vThread = Thread.ofVirtual().name("my-virtual-thread").start(() -> {
-            System.out.println("Running Inside: " + Thread.currentThread());
-        });
-
-        try { vThread.join(); } catch (InterruptedException e) { e.printStackTrace(); }
+public class MiniSpringApp {
+  public static void main(String[] args) {
+    int port = 8080;
+    try {
+      HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+      server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+      System.out.println("Framework Started");
+      // var context = new MiniApplicationContext(MiniSpringApp.class);
+      server.start();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
     }
-
-   }
+  }
+}
