@@ -10,9 +10,9 @@ public class MiniSpringApp {
     int port = 8080;
     try {
       HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+
       server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
       System.out.println("Framework Started");
-      // var context = new MiniApplicationContext(MiniSpringApp.class);
       server.start();
     } catch (IOException e) {
       // TODO Auto-generated catch block

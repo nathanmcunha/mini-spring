@@ -3,6 +3,7 @@ package com.nathanmcunha.minispring.context;
 import com.nathanmcunha.minispring.annotation.Component;
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ public class ApplicationContext {
   private final Set<Class<?>> componentClasses = new HashSet<>();
   private final Set<Class<?>> classesInCreation = new HashSet<>();
 
-  public void MiniApplicationContext(Class<?> configClass)
+  public void ApplicationContext(final Class<?> configClass)
       throws InstantiationException,
           IllegalAccessException,
           IllegalArgumentException,
@@ -83,11 +84,23 @@ public class ApplicationContext {
       } else if (file.getName().endsWith(".class")) {
         String className = packageName.concat(".").concat(file.getName().replace(".class", ""));
         Class<?> clazz = Class.forName(className);
-        if (clazz.isAnnotationPresent(Component.class)) {
+        if (isComponent(clazz)) {
           componentClasses.add(clazz);
         }
       }
     }
+  }
+
+  private boolean isComponent(Class<?> clazz) {
+    if (clazz.isAnnotationPresent(Component.class)) {
+      return true;
+    }
+    for (Annotation annotation : clazz.getAnnotations()) {
+      if (annotation.annotationType().isAnnotationPresent(Component.class)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void instantiateBeans()
@@ -111,32 +124,28 @@ public class ApplicationContext {
 
         // Handle circular dependencies
         if (classesInCreation.contains(clazz)) {
-          // This means we have a circular dependency or some other complex scenario,
-          // or we're just waiting for another bean. For now, defer it.
           classesNotYetInstantiated.add(clazz);
           continue;
         }
 
         try {
-          classesInCreation.add(clazz); // Mark as being created
 
-          Object instance = createBeanInstance(clazz); // Use helper method
+          classesInCreation.add(clazz);
+
+          Object instance = createBeanInstance(clazz);
           beanRegistry.put(clazz, instance);
           beanCreatedInThisPass = true;
-          classesInCreation.remove(clazz); // Remove from in-creation list
+          classesInCreation.remove(clazz);
         } catch (NoClassDefFoundError | NoSuchMethodException e) {
-          // Dependency not found or constructor not resolvable yet, defer instantiation
           classesNotYetInstantiated.add(clazz);
-          classesInCreation.remove(clazz); // Remove from in-creation as it failed
+          classesInCreation.remove(clazz);
         } catch (Exception e) {
-          classesInCreation.remove(clazz); // Remove from in-creation as it failed
-          throw e; // Re-throw other exceptions
+          classesInCreation.remove(clazz);
+          throw e;
         }
       }
 
       if (!beanCreatedInThisPass && !classesNotYetInstantiated.isEmpty()) {
-        // No beans were created in this pass, but some are still pending.
-        // This indicates a missing dependency or a circular dependency that cannot be resolved.
         throw new IllegalStateException(
             "Unable to resolve all bean dependencies. Remaining classes: "
                 + classesNotYetInstantiated);
@@ -157,7 +166,6 @@ public class ApplicationContext {
       throw new NoSuchMethodException("No constructor found for " + clazz.getName());
     }
 
-    // For simplicity, we'll try to use the first declared constructor
     var constructor = constructors[0];
 
     var parameters = constructor.getParameters();
@@ -166,11 +174,10 @@ public class ApplicationContext {
     for (int i = 0; i < parameters.length; i++) {
       Class<?> paramType = parameters[i].getType();
       if (!beanRegistry.containsKey(paramType)) {
-        // Dependency not yet available, this will cause a deferral
         throw new NoClassDefFoundError(
             "Dependency " + paramType.getName() + " not yet available for " + clazz.getName());
       }
-      args[i] = beanRegistry.get(paramType); // Retrieve dependency from registry
+      args[i] = beanRegistry.get(paramType);
     }
 
     return constructor.newInstance(args);
@@ -183,5 +190,9 @@ public class ApplicationContext {
           "Bean of type " + clazz.getName() + " not found in the application context.");
     }
     return (T) beanRegistry.get(clazz);
+  }
+
+  public Set<Class<?>> getComponentsClasses() {
+    return this.componentClasses;
   }
 }

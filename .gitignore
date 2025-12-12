@@ -30,3 +30,18 @@ bin/
 
 # Gemini specific files
 GEMINI.md
+
+# Editor backup files
+*~
+
+# Emacs files
+*#
+
+# Eglot files
+.eglot-java/
+
+# Org mode files
+*.org
+
+# Commit message file
+commit_msg.txt

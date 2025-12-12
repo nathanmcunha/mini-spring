@@ -1,0 +1,14 @@
+{
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "ui": {
+    "theme": "ANSI"
+  },
+  "general": {
+    "previewFeatures": true,
+    "vimMode": false
+  }
+}
