@@ -6,11 +6,13 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
 public class MiniSpringApp {
+  /**
+   * @param args
+   */
   public static void main(String[] args) {
     int port = 8080;
     try {
-      HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-
+      var server = HttpServer.create(new InetSocketAddress(port), 0);
       server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
       System.out.println("Framework Started");
       server.start();

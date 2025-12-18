@@ -1,6 +1,7 @@
 package com.nathanmcunha.minispring.context;
 
 import com.nathanmcunha.minispring.annotation.Component;
+import com.nathanmcunha.minispring.context.interfaces.ApplicationContext;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -14,13 +15,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ApplicationContext {
+public class ConfigApplicationContext implements ApplicationContext {
 
   private final Map<Class<?>, Object> beanRegistry = new HashMap<>();
   private final Set<Class<?>> componentClasses = new HashSet<>();
   private final Set<Class<?>> classesInCreation = new HashSet<>();
 
-  public void ApplicationContext(final Class<?> configClass)
+  public ConfigApplicationContext(final Class<?> configClass)
       throws InstantiationException,
           IllegalAccessException,
           IllegalArgumentException,
@@ -183,7 +184,6 @@ public class ApplicationContext {
     return constructor.newInstance(args);
   }
 
-  @SuppressWarnings("unchecked")
   public <T> T getBean(Class<T> clazz) {
     if (!beanRegistry.containsKey(clazz)) {
       throw new IllegalStateException(
@@ -194,5 +194,11 @@ public class ApplicationContext {
 
   public Set<Class<?>> getComponentsClasses() {
     return this.componentClasses;
+  }
+
+  @Override
+  public <T> boolean containsBean(String name, Class<T> clazz) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'containsBean'");
   }
 }

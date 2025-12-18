@@ -1,8 +1,9 @@
 package com.nathanmcunha.minispring.server.test_components.rest;
 
 import com.nathanmcunha.minispring.annotation.Get;
-import com.nathanmcunha.minispring.annotation.Post;
 import com.nathanmcunha.minispring.annotation.Rest;
+import com.nathanmcunha.minispring.server.HttpStatus;
+import com.nathanmcunha.minispring.server.Response;
 
 @Rest
 public class SimpleRestComponent {
@@ -12,8 +13,8 @@ public class SimpleRestComponent {
     return "ALO";
   }
 
-  @Post(value = "/postTest")
-  public String simplePost() {
-    return "Simple Post";
+  @Get(value = "/getResponse")
+  public Response<String> getResponse() {
+    return Response.Builder(HttpStatus.OK.value()).body("TestResponse");
   }
 }
