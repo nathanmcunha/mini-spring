@@ -16,14 +16,14 @@ public class ApplicationContextTest {
 
   @Test
   void shouldDiscoverAndInstantiateComponentsWithDefaultConstructors() throws Exception {
-    ApplicationContext context = new ConfigApplicationContext(SimpleConfig.class);
+    ApplicationContext context = new ApplicationContextConfig(SimpleConfig.class);
     MyTestComponent component = context.getBean(MyTestComponent.class);
     assertNotNull(component, "MyTestComponent should be discovered and instantiated.");
   }
 
   @Test
   void shouldInstantiateComponentWithDependencies() throws Exception {
-    ApplicationContext context = new ConfigApplicationContext(DIConfig.class);
+    ApplicationContext context = new ApplicationContextConfig(DIConfig.class);
 
     MyAnotherComponentTest component = context.getBean(MyAnotherComponentTest.class);
     assertNotNull(component, "MyAnotherComponentTest should be discovered and instantiated.");
@@ -35,7 +35,7 @@ public class ApplicationContextTest {
     assertThrows(
         IllegalStateException.class,
         () -> {
-          ApplicationContext context = new ConfigApplicationContext(CircularConfig.class);
+          ApplicationContext context = new ApplicationContextConfig(CircularConfig.class);
         });
   }
 }

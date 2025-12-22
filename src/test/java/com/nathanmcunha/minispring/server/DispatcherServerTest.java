@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.nathanmcunha.minispring.context.ConfigApplicationContext;
+import com.nathanmcunha.minispring.context.ApplicationContextConfig;
 import com.nathanmcunha.minispring.context.interfaces.ApplicationContext;
 import com.nathanmcunha.minispring.server.test_components.rest.SimpleConfigRest;
 import com.sun.net.httpserver.HttpExchange;
@@ -34,8 +34,8 @@ public class DispatcherServerTest {
           IllegalArgumentException,
           InvocationTargetException,
           NoSuchMethodException,
-          SecurityException {
-    ApplicationContext context = new ConfigApplicationContext(SimpleConfigRest.class);
+          SecurityException, ClassNotFoundException, IOException {
+    ApplicationContext context = new ApplicationContextConfig(SimpleConfigRest.class);
 
     servlet = new DispatcherServlet(context);
   }

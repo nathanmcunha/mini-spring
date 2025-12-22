@@ -1,6 +1,7 @@
 package com.nathanmcunha.minispring.context.interfaces;
 
-import java.util.Set;
+import java.lang.annotation.Annotation;
+import java.util.Collection;
 
 public interface ApplicationContext {
 
@@ -8,5 +9,10 @@ public interface ApplicationContext {
 
   <T> boolean containsBean(String name, Class<T> clazz);
 
-  Set<Class<?>> getComponentsClasses();
+  Collection<Class<?>> getComponentePerAnnotationType(
+      Class<? extends Annotation> annotationType);
+
+  static boolean isClassTypeOf(Class<?> clazz, Class<? extends Annotation> annotationType) {
+    return clazz.isAnnotationPresent(annotationType);
+  }
 }

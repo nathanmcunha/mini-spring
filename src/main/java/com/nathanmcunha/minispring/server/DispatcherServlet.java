@@ -1,28 +1,22 @@
 package com.nathanmcunha.minispring.server;
 
-import com.nathanmcunha.minispring.annotation.Get;
-import com.nathanmcunha.minispring.annotation.Rest;
 import com.nathanmcunha.minispring.context.interfaces.ApplicationContext;
+import com.nathanmcunha.minispring.server.utils.ServletUtils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class DispatcherServlet implements HttpHandler {
 
   private final Map<String, MethodHandler> routes;
 
   public DispatcherServlet(final ApplicationContext context) {
-    this.routes = scanForControllers(context);
+       this.routes = ServletUtils.getRoutes(context);
   }
 
   @Override
@@ -36,7 +30,7 @@ public class DispatcherServlet implements HttpHandler {
 
     try {
 
-      Object result = route.method.invoke(route.instance);
+      Object result = route.method().invoke(route.instance());
       var statusToSend = HttpURLConnection.HTTP_OK;
       Object bodyToSend = result;
       if (result instanceof Response<?> response) {
@@ -55,37 +49,4 @@ public class DispatcherServlet implements HttpHandler {
       exchange.sendResponseHeaders(HttpURLConnection.HTTP_INTERNAL_ERROR, -1);
     }
   }
-
-  private Map<String, MethodHandler> scanForControllers(ApplicationContext context) {
-    var componentClasses = context.getComponentsClasses();
-    return componentClasses.stream()
-        .filter(this::isRestController)
-        .flatMap(clazz -> this.extractRoutes(context, clazz))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  }
-
-  private Stream<Entry<String, MethodHandler>> extractRoutes(
-      ApplicationContext context, Class<?> clazz) {
-    {
-      return Arrays.stream(clazz.getDeclaredMethods())
-          .filter(method -> method.isAnnotationPresent(Get.class))
-          .map(
-              method -> {
-                String url = method.getAnnotation(Get.class).value();
-                return Map.entry(url, generateMethodHandler(clazz, method, context));
-              });
-    }
-  }
-
-  private boolean isRestController(Class<?> clazz) {
-    return clazz.isAnnotationPresent(Rest.class);
-  }
-
-  private MethodHandler generateMethodHandler(
-      Class<?> clazz, Method method, ApplicationContext context) {
-    Object beanInstance = context.getBean(clazz);
-    return new MethodHandler(beanInstance, method);
-  }
-
-  record MethodHandler(Object instance, Method method) {}
 }
