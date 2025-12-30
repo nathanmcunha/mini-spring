@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.nathanmcunha.minispring.context.ApplicationContextConfig;
+import com.nathanmcunha.minispring.MiniApplicationContext;
 import com.nathanmcunha.minispring.context.interfaces.ApplicationContext;
 import com.nathanmcunha.minispring.server.test_components.rest.SimpleConfigRest;
 import com.sun.net.httpserver.HttpExchange;
@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,10 +35,12 @@ public class DispatcherServerTest {
           IllegalArgumentException,
           InvocationTargetException,
           NoSuchMethodException,
-          SecurityException, ClassNotFoundException, IOException {
-    ApplicationContext context = new ApplicationContextConfig(SimpleConfigRest.class);
-
-    servlet = new DispatcherServlet(context);
+          SecurityException,
+          ClassNotFoundException,
+          IOException {
+    ApplicationContext context = new MiniApplicationContext(SimpleConfigRest.class);
+    RouteRegistry mapping = new RouteRegistry(context);
+    servlet = new DispatcherServlet(mapping);
   }
 
   @Test
@@ -52,6 +55,7 @@ public class DispatcherServerTest {
           IOException {
 
     when(exchange.getRequestURI()).thenReturn(new URI("/getTest"));
+    when(exchange.getRequestMethod()).thenReturn("GET");
     ByteArrayOutputStream responseBody = new ByteArrayOutputStream();
     when(exchange.getResponseBody()).thenReturn(responseBody);
 
@@ -65,6 +69,7 @@ public class DispatcherServerTest {
     when(exchange.getRequestURI()).thenReturn(new URI("/getResponse"));
     ByteArrayOutputStream responseBody = new ByteArrayOutputStream();
     when(exchange.getResponseBody()).thenReturn(responseBody);
+    when(exchange.getRequestMethod()).thenReturn("GET");
 
     servlet.handle(exchange);
     assertEquals("TestResponse", responseBody.toString());
