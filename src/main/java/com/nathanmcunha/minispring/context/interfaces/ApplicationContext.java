@@ -1,18 +1,9 @@
 package com.nathanmcunha.minispring.context.interfaces;
 
-import java.lang.annotation.Annotation;
-import java.util.Collection;
+import java.util.Optional;
 
 public interface ApplicationContext {
+  BeanFactory getBeanFactory();
 
-  <T> T getBean(Class<T> clazz);
-
-  <T> boolean containsBean(String name, Class<T> clazz);
-
-  Collection<Class<?>> getComponentePerAnnotationType(
-      Class<? extends Annotation> annotationType);
-
-  static boolean isClassTypeOf(Class<?> clazz, Class<? extends Annotation> annotationType) {
-    return clazz.isAnnotationPresent(annotationType);
-  }
+  <T> Optional<T> getBean(Class<T> clazz);
 }
