@@ -102,3 +102,6 @@ This is an educational project, but suggestions and improvements are welcome! Fe
 
 ## 📄 License
 MIT
+
+---
+*Disclaimer: This README and the project's architectural documentation were generated with the assistance of Google Gemini.*
