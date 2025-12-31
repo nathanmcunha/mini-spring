@@ -1,0 +1,104 @@
+# Mini-Spring Framework
+
+**Mini-Spring** is a lightweight, educational Java framework built from scratch. It mimics the core principles of the Spring Framework (Dependency Injection & Web MVC) but implements them using modern Java 21 features and a "Functional Core, Imperative Shell" architecture.
+
+> **Goal:** To understand *how* frameworks work by building one, focusing on clean architecture, immutability, and functional programming patterns.
+
+## 🚀 Key Features
+
+*   **Dependency Injection (DI) Container**:
+    *   Recursive dependency resolution.
+    *   Circular dependency detection.
+    *   Component scanning (finding `@Component` and `@Rest` beans).
+*   **Web MVC Layer**:
+    *   **Functional Design**: The `DispatcherServlet` uses a functional pipeline (`Result<T, E>`) to separate logic from side effects.
+    *   **Action-Based Routing**: Clean separation between `Router` (finding a handler) and `RouteAction` (executing it).
+    *   **Reflection-Based Mapping**: Automatically maps `@Get` and `@Post` methods to URL paths.
+*   **Modern Java**: Built with Java 21, utilizing Records, Sealed Interfaces, Virtual Threads, and Pattern Matching.
+
+## 🏗️ Architecture
+
+This project deliberately avoids the standard "Service/Impl" package structure in favor of an **Action-Based Organization**:
+
+```text
+com.nathanmcunha.minispring
+├── container           # The DI Engine
+│   ├── boot            # Context startup & lifecycle
+│   ├── wiring          # Dependency graph resolution logic
+│   ├── registry        # Bean storage & retrieval
+│   ├── discovery       # Classpath scanning
+│   └── metadata        # BeanDefinition models
+└── server              # The Web Layer
+    ├── dispatch        # DispatcherServlet (Imperative Shell)
+    ├── router          # Routing logic (Functional Core)
+    ├── protocol        # HTTP models (Response, HttpStatus)
+    └── error           # Error handling types
+```
+
+## 🛠️ Getting Started
+
+### Prerequisites
+*   Java 21 or higher
+*   Gradle (wrapper included)
+
+### Building the Project
+```bash
+./gradlew build
+```
+
+### Running the Tests
+```bash
+./gradlew test
+```
+
+### Running the Example App
+The project includes a sample `MiniSpringApp` that starts a server on port 8080.
+
+```bash
+./gradlew run
+```
+
+Once running, you can test the endpoints (defined in test components):
+```bash
+curl http://localhost:8080/getTest
+```
+
+## 📝 Example Usage
+
+### Creating a Controller
+Just annotate your class with `@Rest` and methods with `@Get` or `@Post`.
+
+```java
+@Rest
+public class MyController {
+
+    @Get("/hello")
+    public String sayHello() {
+        return "Hello, World!";
+    }
+
+    @Get("/json")
+    public Response<MyData> getJson() {
+        return Response.Builder(HttpStatus.OK.value())
+                       .body(new MyData("data"));
+    }
+}
+```
+
+### Creating a Service
+Use `@Component` to mark a class as a bean. It will be automatically injected where needed.
+
+```java
+@Component
+public class MyService {
+    public String doSomething() {
+        return "Done!";
+    }
+}
+```
+
+## 🤝 Contributing
+This is an educational project, but suggestions and improvements are welcome! Feel free to open issues to discuss architecture or refactoring ideas.
+
+## 📄 License
+MIT
