@@ -1,4 +1,4 @@
-package com.nathanmcunha.minispring.container;
+package com.nathanmcunha.minispring.container.metadata;
 
 import java.util.Set;
 

@@ -1,10 +1,5 @@
 package com.nathanmcunha.minispring.server.router;
 
-import com.nathanmcunha.minispring.annotations.Get;
-import com.nathanmcunha.minispring.annotations.Post;
-import com.nathanmcunha.minispring.annotations.Rest;
-import com.nathanmcunha.minispring.container.ApplicationContext;
-import com.nathanmcunha.minispring.server.router.HandlerMapping;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -14,8 +9,19 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import com.nathanmcunha.minispring.annotations.Get;
+import com.nathanmcunha.minispring.annotations.Post;
+import com.nathanmcunha.minispring.annotations.Rest;
+import com.nathanmcunha.minispring.container.ApplicationContext;
+import com.nathanmcunha.minispring.server.router.model.MethodHandler;
+import com.nathanmcunha.minispring.server.router.model.RouteKey;
 
-public class RouteRegistry implements HandlerMapping {
+/*
+  Responsible to build the registry and put the beand into the context
+  Also, extract and create the routes from the Rest.class and checking the type of the
+  call e.g: GET.class and POST.class
+**/
+public class RouteRegistry implements Router {
 
   private final Map<RouteKey, MethodHandler> routes;
 

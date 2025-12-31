@@ -1,5 +1,5 @@
 package com.nathanmcunha.minispring.common;
-import java.util.function.Function;
+
 
 public sealed interface Result<T, E> {
   record Success<T, E>(T value) implements Result<T, E> {}
@@ -14,11 +14,11 @@ public sealed interface Result<T, E> {
     return new Failure<>(error);
   }
 
-  default <U> Result<U, E> map(Function<T, U> mapper) {
-    return this instanceof Success<T, E> s ? success(mapper.apply(s.value())) : (Result<U, E>) this;
-  }
+  // default <U> Result<U, E> map(Function<T, U> mapper) {
+  //   return this instanceof Success<T, E> s ? success(mapper.apply(s.value())) : (Result<U, E>) this;
+  // }
 
-  default <U> Result<U, E> flatMap(Function<T, Result<U, E>> mapper) {
-    return this instanceof Success<T, E> s ? mapper.apply(s.value()) : (Result<U, E>) this;
-  }
+  // default <U> Result<U, E> flatMap(Function<T, Result<U, E>> mapper) {
+  //   return this instanceof Success<T, E> s ? mapper.apply(s.value()) : (Result<U, E>) this;
+  // }
 }

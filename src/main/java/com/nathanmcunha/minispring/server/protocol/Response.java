@@ -1,4 +1,4 @@
-package com.nathanmcunha.minispring.server.model;
+package com.nathanmcunha.minispring.server.protocol;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,8 +1,8 @@
 package com.nathanmcunha.minispring.server.router;
 
 import com.nathanmcunha.minispring.common.Result;
-import com.nathanmcunha.minispring.server.router.RouteError;
-import com.nathanmcunha.minispring.server.model.Response;
+import com.nathanmcunha.minispring.error.ServerError;
+import com.nathanmcunha.minispring.server.protocol.Response;
 import com.sun.net.httpserver.HttpExchange;
 
 @FunctionalInterface
@@ -13,6 +13,6 @@ public interface RouteAction {
    *
    * @param exchange the http to act
    */
-    Result<Response<?>,RouteError>perform(HttpExchange exchange);
+    Result<Response<?>,ServerError>perform(HttpExchange exchange);
 
 }

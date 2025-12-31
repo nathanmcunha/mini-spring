@@ -6,10 +6,11 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.nathanmcunha.minispring.container.MiniApplicationContext;
 import com.nathanmcunha.minispring.container.ApplicationContext;
-import com.nathanmcunha.minispring.server.core.DispatcherServlet;
-import com.nathanmcunha.minispring.server.router.HandlerMappingRegistry;
+import com.nathanmcunha.minispring.container.boot.MiniApplicationContext;
+import com.nathanmcunha.minispring.server.dispatch.DispatcherServlet;
+import com.nathanmcunha.minispring.server.router.RouteRegistry;
+import com.nathanmcunha.minispring.server.router.Router;
 import com.nathanmcunha.minispring.server.test_components.rest.SimpleConfigRest;
 import com.sun.net.httpserver.HttpExchange;
 import java.io.ByteArrayOutputStream;
@@ -41,8 +42,8 @@ public class DispatcherServerTest {
           ClassNotFoundException,
           IOException {
     ApplicationContext context = new MiniApplicationContext(SimpleConfigRest.class);
-    HandlerMappingRegistry mapping = new HandlerMappingRegistry(context);
-    servlet = new DispatcherServlet(mapping);
+    Router router = new RouteRegistry(context);
+    servlet = new DispatcherServlet(router);
   }
 
   @Test

@@ -3,7 +3,7 @@ package com.nathanmcunha.minispring.container;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import com.nathanmcunha.minispring.container.boot.MiniApplicationContext;
 import com.nathanmcunha.minispring.container.test_components.circular.CircularConfig;
 import com.nathanmcunha.minispring.container.test_components.di.DIConfig;
 import com.nathanmcunha.minispring.container.test_components.di.MyAnotherComponentTest;

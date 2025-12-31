@@ -1,4 +1,4 @@
-package com.nathanmcunha.minispring.server.router;
+package com.nathanmcunha.minispring.server.router.model;
 
 import java.lang.reflect.Method;
 

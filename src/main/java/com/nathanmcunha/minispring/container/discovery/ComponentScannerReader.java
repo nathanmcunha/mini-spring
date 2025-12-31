@@ -1,8 +1,5 @@
-package com.nathanmcunha.minispring.container.scanners;
+package com.nathanmcunha.minispring.container.discovery;
 
-import com.nathanmcunha.minispring.annotations.Component;
-import com.nathanmcunha.minispring.container.BeanDefinition;
-import com.nathanmcunha.minispring.container.BeanDefinitionReader;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -17,6 +14,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import com.nathanmcunha.minispring.annotations.Component;
+import com.nathanmcunha.minispring.container.metadata.BeanDefinition;
+import com.nathanmcunha.minispring.container.metadata.BeanDefinitionReader;
 
 public class ComponentScannerReader implements BeanDefinitionReader {
 

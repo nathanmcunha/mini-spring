@@ -1,4 +1,4 @@
-package com.nathanmcunha.minispring.server.model;
+package com.nathanmcunha.minispring.server.protocol;
 
 public enum HttpStatus {
     OK(200),

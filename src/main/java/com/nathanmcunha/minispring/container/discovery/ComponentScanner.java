@@ -1,4 +1,4 @@
-package com.nathanmcunha.minispring.container.scanners;
+package com.nathanmcunha.minispring.container.discovery;
 
 import com.nathanmcunha.minispring.annotations.Component;
 import java.io.File;

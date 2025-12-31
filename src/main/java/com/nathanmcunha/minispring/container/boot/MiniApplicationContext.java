@@ -1,12 +1,12 @@
-package com.nathanmcunha.minispring.container;
+package com.nathanmcunha.minispring.container.boot;
 
-import com.nathanmcunha.minispring.container.DefaultBeanFactory;
-import com.nathanmcunha.minispring.container.DependencyResolver;
-import com.nathanmcunha.minispring.container.ApplicationContext;
-import com.nathanmcunha.minispring.container.BeanDefinitionReader;
-import com.nathanmcunha.minispring.container.BeanFactory;
-import com.nathanmcunha.minispring.container.scanners.ComponentScannerReader;
 import java.util.Optional;
+import com.nathanmcunha.minispring.container.ApplicationContext;
+import com.nathanmcunha.minispring.container.BeanFactory;
+import com.nathanmcunha.minispring.container.discovery.ComponentScannerReader;
+import com.nathanmcunha.minispring.container.metadata.BeanDefinitionReader;
+import com.nathanmcunha.minispring.container.registry.DefaultBeanFactory;
+import com.nathanmcunha.minispring.container.wiring.DependencyResolver;
 
 public class MiniApplicationContext implements ApplicationContext {
 

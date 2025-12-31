@@ -1,3 +1,3 @@
-package com.nathanmcunha.minispring.container;
+package com.nathanmcunha.minispring.container.metadata;
 
 public record BeanDefinition(Class<?> clazz, Class<?>[] dependecies) {}
