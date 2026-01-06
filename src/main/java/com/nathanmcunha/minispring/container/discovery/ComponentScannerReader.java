@@ -1,70 +1,80 @@
 package com.nathanmcunha.minispring.container.discovery;
 
+import com.nathanmcunha.minispring.annotations.Component;
+import com.nathanmcunha.minispring.common.Result;
+import com.nathanmcunha.minispring.container.metadata.BeanDefinition;
+import com.nathanmcunha.minispring.container.metadata.BeanDefinitionReader;
+import com.nathanmcunha.minispring.error.ScanError;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.Optional;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import com.nathanmcunha.minispring.annotations.Component;
-import com.nathanmcunha.minispring.container.metadata.BeanDefinition;
-import com.nathanmcunha.minispring.container.metadata.BeanDefinitionReader;
 
 public class ComponentScannerReader implements BeanDefinitionReader {
 
-  public Set<BeanDefinition> scan(String packageName) {
+  public Result<Set<BeanDefinition>, ScanError> scan(Class<?> config) {
     try {
+      String packageName = config.getPackageName();
       String path = packageName.replace(".", "/");
       ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-      Enumeration<URL> resources;
-
-      resources = classLoader.getResources(path);
-      var scanned = Collections.list(resources).stream()
-          .flatMap(url -> scanDirectory(url, packageName))
-          .collect(Collectors.toSet());
-      return scanned;
-
-    } catch (IOException e) {
-        throw new RuntimeException("Circular???");
+      List<URL> resources = classLoader.resources(path).toList();
+      return Result.traverse(
+          resources,
+          url -> scanRoot(url, packageName),
+          Collectors.flatMapping(Set::stream, Collectors.toSet()));
+    } catch (Exception e) {
+      return Result.failure(new ScanError("Failed to scan resources", e));
     }
   }
 
-  private Stream<BeanDefinition> scanDirectory(URL resource, String packageName) {
+  // this is responsible for I/O operation , basically is reading the folders looking for classes
+  // to be mapped/discovery
+  private Result<Set<BeanDefinition>, ScanError> scanRoot(URL resource, String packageName) {
     try {
-
       Path root = Paths.get(resource.toURI());
-      return Files.walk(root)
-          .filter(Files::isRegularFile)
-          .filter(file -> file.toString().endsWith(".class"))
-          .flatMap(
-              file ->
-                  loadClass(root, file, packageName).stream()
-                      .filter(this::isComponent)
-                      .map(
-                          clazz ->
-                              new BeanDefinition(
-                                  clazz, clazz.getConstructors()[0].getParameterTypes())));
-    } catch (IOException | URISyntaxException e) {
-      throw new RuntimeException("Failed to scan package " + packageName, e);
+
+      Result<List<Path>, ScanError> filesResult = safeWalk(root);
+      return filesResult.map(
+          paths ->
+              paths.stream()
+                  .flatMap(file -> loadClass(root, file, packageName).stream())
+                  .filter(this::isComponent)
+                  .map(this::createBeanDefinition)
+                  .collect(Collectors.toSet()));
+    } catch (Exception e) {
+      return Result.failure(new ScanError("Scan failed for root: " + resource, e));
     }
   }
 
-  private Optional<Class<?>> loadClass(Path root, Path file, String basePackage) {
+  private Result<List<Path>, ScanError> safeWalk(Path root) {
+    try (var stream = Files.walk(root)) {
+      List<Path> files =
+          stream.filter(Files::isRegularFile).filter(p -> p.toString().endsWith(".class")).toList();
+      return Result.success(files);
+    } catch (IOException e) {
+      return Result.failure(new ScanError("Failed to walk path: " + root, e));
+    }
+  }
+
+  private BeanDefinition createBeanDefinition(Class<?> clazz) {
+    // Safe to assume constructors exist for loaded classes, but good to be aware
+    return new BeanDefinition(clazz, clazz.getConstructors()[0].getParameterTypes());
+  }
+
+  private Result<Class<?>, ScanError> loadClass(Path root, Path file, String packageName) {
     String relative = root.relativize(file).toString();
     String className =
-        basePackage.concat(".").concat(relative).replace(File.separator, ".").replace(".class", "");
+        packageName.concat(".").concat(relative).replace(File.separator, ".").replace(".class", "");
     try {
-      return Optional.of(Class.forName(className));
-    } catch (ClassNotFoundException e) {
-      return Optional.empty();
+      return Result.success(Class.forName(className));
+    } catch (Exception e) {
+      return Result.failure(new ScanError("Failed to load class: " + className, e));
     }
   }
 
