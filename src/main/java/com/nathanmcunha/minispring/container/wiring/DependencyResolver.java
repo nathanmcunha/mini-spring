@@ -1,12 +1,18 @@
 package com.nathanmcunha.minispring.container.wiring;
 
+import com.nathanmcunha.minispring.common.Result;
+import com.nathanmcunha.minispring.container.metadata.BeanDefinition;
+import com.nathanmcunha.minispring.error.DependencyError;
+import com.nathanmcunha.minispring.error.DependencyError.CircularDependencyFailed;
+import com.nathanmcunha.minispring.error.DependencyError.InstantiationFailed;
 import java.lang.reflect.Constructor;
-import java.util.Arrays;
+import java.lang.reflect.Parameter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import com.nathanmcunha.minispring.container.metadata.BeanDefinition;
 
 /*
   Responsible to do the wire and check the dependecies between beans
@@ -18,44 +24,65 @@ public class DependencyResolver {
 
   public DependencyResolver() {}
 
-  public Map<Class<?>, Object> resolve(Set<BeanDefinition> definitions) {
+  public Result<Map<Class<?>, Object>, DependencyError> resolve(Set<BeanDefinition> definitions) {
     for (BeanDefinition beanDefinition : definitions) {
-      createBean(beanDefinition.clazz(), definitions);
+      Result<Object, DependencyError> result = resolveBean(beanDefinition.clazz(), definitions);
+      if (result instanceof Result.Failure<Object, DependencyError> failure) {
+        return Result.failure(failure.error());
+      }
     }
-    return Map.copyOf(builtBeans);
+    return Result.success(Map.copyOf(builtBeans));
   }
 
-    
-  private Object createBean(Class<?> clazz, Set<BeanDefinition> allBeanDefitions) {
+  private Result<Object, DependencyError> resolveBean(
+      Class<?> clazz, Set<BeanDefinition> allBeanDefinitions) {
     if (builtBeans.containsKey(clazz)) {
-      return builtBeans.get(clazz);
+      return Result.success(builtBeans.get(clazz));
     }
-    //remove this logic throwing a exception
-    //Use Optional?
     if (currentlyBuilding.contains(clazz)) {
-      throw new IllegalStateException("Circular Dependency: " + clazz.getName());
+      return Result.failure(
+          new CircularDependencyFailed("Circular Dependency: " + clazz.getName()));
     }
+
     currentlyBuilding.add(clazz);
     try {
       Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
-      Object[] args =
-          Arrays.stream(constructor.getParameters())
-              .map(param -> createBean(param.getType(), allBeanDefitions))
-              .toArray();
-      Object instance = instantiate(constructor, args);
-      builtBeans.put(clazz, instance);
-      return instance;
+
+      return resolveArguments(constructor.getParameters(), allBeanDefinitions)
+          .flatMap(args -> instantiate(constructor, args))
+          .map(
+              instance -> {
+                builtBeans.put(clazz, instance);
+                return instance;
+              });
+
     } finally {
       currentlyBuilding.remove(clazz);
     }
   }
 
-  private Object instantiate(Constructor<?> constructor, Object[] args) {
+  private Result<Object[], DependencyError> resolveArguments(
+      Parameter[] parameters, Set<BeanDefinition> allBeanDefinitions) {
+    List<Object> args = new ArrayList<>();
+    for (java.lang.reflect.Parameter param : parameters) {
+      Result<Object, DependencyError> result = resolveBean(param.getType(), allBeanDefinitions);
+      switch (result) {
+        case Result.Success<Object, DependencyError>(var value) -> args.add(value);
+        case Result.Failure<Object, DependencyError>(var error) -> {
+          return Result.failure(error);
+        }
+      }
+    }
+    return Result.success(args.toArray());
+  }
+
+  private Result<Object, DependencyError> instantiate(Constructor<?> constructor, Object[] args) {
     try {
-      return constructor.newInstance(args);
+      return Result.success(constructor.newInstance(args));
     } catch (Exception e) {
-      throw new RuntimeException(
-          "Failed to build bean:" + constructor.getDeclaringClass().getName(), e);
+      return Result.failure(
+          new InstantiationFailed(
+              "Failed to build bean:" + constructor.getDeclaringClass().getName(), e));
     }
   }
 }
