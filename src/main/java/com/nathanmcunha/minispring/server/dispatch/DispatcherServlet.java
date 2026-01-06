@@ -4,13 +4,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
+
 import com.nathanmcunha.minispring.common.Result;
 import com.nathanmcunha.minispring.error.ServerError;
-import com.nathanmcunha.minispring.server.protocol.Response;
 import com.nathanmcunha.minispring.server.protocol.HttpStatus;
-import com.nathanmcunha.minispring.server.router.model.MethodHandler;
+import com.nathanmcunha.minispring.server.protocol.Response;
 import com.nathanmcunha.minispring.server.router.RouteAction;
 import com.nathanmcunha.minispring.server.router.Router;
+import com.nathanmcunha.minispring.server.router.model.MethodHandler;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -30,12 +31,11 @@ public class DispatcherServlet implements HttpHandler {
     String verb = exchange.getRequestMethod();
     String path = exchange.getRequestURI().getPath();
 
-    Result<Response<?>, ServerError> result =
-        router
-            .getHandler(verb, path)
-            .map(this::createExecutionAction)
-            .orElseGet(this::create404Action)
-            .perform(exchange);
+    Result<Response<?>, ServerError> result = router
+        .getHandler(verb, path)
+        .map(this::createExecutionAction)
+        .orElseGet(this::create404Action)
+        .perform(exchange);
 
     switch (result) {
       case Result.Success(var response) -> writeResponse(exchange, response);

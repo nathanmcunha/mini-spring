@@ -13,6 +13,5 @@ public interface RouteAction {
    *
    * @param exchange the http to act
    */
-    Result<Response<?>,ServerError>perform(HttpExchange exchange);
-
+  Result<Response<?>, ServerError> perform(HttpExchange exchange);
 }

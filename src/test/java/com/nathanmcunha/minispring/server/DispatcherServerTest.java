@@ -6,19 +6,17 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.nathanmcunha.minispring.container.ApplicationContext;
+import com.nathanmcunha.minispring.common.Result;
 import com.nathanmcunha.minispring.container.boot.MiniApplicationContext;
+import com.nathanmcunha.minispring.error.ContextError;
 import com.nathanmcunha.minispring.server.dispatch.DispatcherServlet;
 import com.nathanmcunha.minispring.server.router.RouteRegistry;
-import com.nathanmcunha.minispring.server.router.Router;
 import com.nathanmcunha.minispring.server.test_components.rest.SimpleConfigRest;
 import com.sun.net.httpserver.HttpExchange;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,34 +27,25 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class DispatcherServerTest {
 
   @Mock private HttpExchange exchange;
+
   private DispatcherServlet servlet;
 
   @BeforeEach
-  void setupContextAndRequest()
-      throws InstantiationException,
-          IllegalAccessException,
-          IllegalArgumentException,
-          InvocationTargetException,
-          NoSuchMethodException,
-          SecurityException,
-          ClassNotFoundException,
-          IOException {
-    ApplicationContext context = new MiniApplicationContext(SimpleConfigRest.class);
-    Router router = new RouteRegistry(context);
-    servlet = new DispatcherServlet(router);
+  void setupContextAndRequest() {
+    Result<MiniApplicationContext, ContextError> contextResult =
+        MiniApplicationContext.boot(SimpleConfigRest.class);
+    
+    if (contextResult instanceof Result.Success<MiniApplicationContext, ContextError> success) {
+        var context = success.value();
+        var registry = new RouteRegistry(context);
+        this.servlet = new DispatcherServlet(registry);
+    } else {
+        throw new RuntimeException("Failed to boot context for tests");
+    }
   }
 
   @Test
-  void shouldReturnSimpleRestComponentInContext()
-      throws InstantiationException,
-          IllegalAccessException,
-          IllegalArgumentException,
-          InvocationTargetException,
-          NoSuchMethodException,
-          SecurityException,
-          URISyntaxException,
-          IOException {
-
+  void shouldReturnSimpleRestComponentInContext() throws URISyntaxException, IOException {
     when(exchange.getRequestURI()).thenReturn(new URI("/getTest"));
     when(exchange.getRequestMethod()).thenReturn("GET");
     ByteArrayOutputStream responseBody = new ByteArrayOutputStream();
