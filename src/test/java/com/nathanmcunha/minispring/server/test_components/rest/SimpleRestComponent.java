@@ -2,8 +2,8 @@ package com.nathanmcunha.minispring.server.test_components.rest;
 
 import com.nathanmcunha.minispring.annotations.Get;
 import com.nathanmcunha.minispring.annotations.Rest;
-import com.nathanmcunha.minispring.server.protocol.HttpStatus;
-import com.nathanmcunha.minispring.server.protocol.Response;
+import com.nathanmcunha.minispring.server.dispatch.protocol.HttpStatus;
+import com.nathanmcunha.minispring.server.dispatch.protocol.Response;
 
 @Rest
 public class SimpleRestComponent {

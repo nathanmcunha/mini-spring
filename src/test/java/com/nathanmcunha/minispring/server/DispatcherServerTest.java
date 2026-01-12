@@ -8,9 +8,9 @@ import static org.mockito.Mockito.when;
 
 import com.nathanmcunha.minispring.common.Result;
 import com.nathanmcunha.minispring.container.boot.MiniApplicationContext;
-import com.nathanmcunha.minispring.error.ContextError;
+import com.nathanmcunha.minispring.error.FrameworkError;
 import com.nathanmcunha.minispring.server.dispatch.DispatcherServlet;
-import com.nathanmcunha.minispring.server.router.RouteRegistry;
+import com.nathanmcunha.minispring.server.router.RouterRegistry;
 import com.nathanmcunha.minispring.server.test_components.rest.SimpleConfigRest;
 import com.sun.net.httpserver.HttpExchange;
 import java.io.ByteArrayOutputStream;
@@ -32,15 +32,20 @@ public class DispatcherServerTest {
 
   @BeforeEach
   void setupContextAndRequest() {
-    Result<MiniApplicationContext, ContextError> contextResult =
+    Result<MiniApplicationContext, FrameworkError> contextResult =
         MiniApplicationContext.boot(SimpleConfigRest.class);
-    
-    if (contextResult instanceof Result.Success<MiniApplicationContext, ContextError> success) {
-        var context = success.value();
-        var registry = new RouteRegistry(context);
-        this.servlet = new DispatcherServlet(registry);
+
+    if (contextResult instanceof Result.Success<MiniApplicationContext, FrameworkError> success) {
+      var context = success.value();
+      var registryResult = RouterRegistry.create(context.getBeanFactory());
+      
+      if (registryResult instanceof Result.Success(var registry)) {
+           this.servlet = new DispatcherServlet(registry);
+      } else {
+           throw new RuntimeException("Failed to create router registry for tests");
+      }
     } else {
-        throw new RuntimeException("Failed to boot context for tests");
+      throw new RuntimeException("Failed to boot context for tests");
     }
   }
 
