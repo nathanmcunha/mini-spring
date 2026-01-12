@@ -2,9 +2,7 @@ package com.nathanmcunha.minispring.container.wiring;
 
 import com.nathanmcunha.minispring.common.Result;
 import com.nathanmcunha.minispring.container.metadata.BeanDefinition;
-import com.nathanmcunha.minispring.error.DependencyError;
-import com.nathanmcunha.minispring.error.DependencyError.CircularDependencyFailed;
-import com.nathanmcunha.minispring.error.DependencyError.InstantiationFailed;
+import com.nathanmcunha.minispring.error.FrameworkError;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
@@ -13,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /*
   Responsible to do the wire and check the dependecies between beans
@@ -24,51 +23,83 @@ public class DependencyResolver {
 
   public DependencyResolver() {}
 
-  public Result<Map<Class<?>, Object>, DependencyError> resolve(Set<BeanDefinition> definitions) {
+  public Result<Map<Class<?>, Object>, FrameworkError> resolve(Set<BeanDefinition> definitions) {
     for (BeanDefinition beanDefinition : definitions) {
-      Result<Object, DependencyError> result = resolveBean(beanDefinition.clazz(), definitions);
-      if (result instanceof Result.Failure<Object, DependencyError> failure) {
+      Result<Object, FrameworkError> result = resolveBean(beanDefinition.clazz(), definitions);
+      if (result instanceof Result.Failure<Object, FrameworkError> failure) {
         return Result.failure(failure.error());
       }
     }
     return Result.success(Map.copyOf(builtBeans));
   }
 
-  private Result<Object, DependencyError> resolveBean(
-      Class<?> clazz, Set<BeanDefinition> allBeanDefinitions) {
-    if (builtBeans.containsKey(clazz)) {
-      return Result.success(builtBeans.get(clazz));
-    }
-    if (currentlyBuilding.contains(clazz)) {
+  private Result<Object, FrameworkError> resolveBean(
+      Class<?> type, Set<BeanDefinition> definitions) {
+    return findImplementation(type, definitions).flatMap(impl -> createInstance(impl, definitions));
+  }
+
+  private Result<Class<?>, FrameworkError> findImplementation(
+      Class<?> type, Set<BeanDefinition> definitions) {
+    List<Class<?>> candidates =
+        definitions.stream()
+            .map(BeanDefinition::clazz)
+            .filter(type::isAssignableFrom)
+            .collect(Collectors.toList());
+
+    if (candidates.isEmpty()) {
       return Result.failure(
-          new CircularDependencyFailed("Circular Dependency: " + clazz.getName()));
+          new FrameworkError.MissingDependency(
+              "No implementation found for required type: " + type.getName()));
     }
 
-    currentlyBuilding.add(clazz);
-    try {
-      Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
+    if (candidates.size() > 1) {
+      return Result.failure(
+          new FrameworkError.AmbiguousDependency(
+              "Multiple beans found for type " + type.getName() + ": " + candidates));
+    }
 
-      return resolveArguments(constructor.getParameters(), allBeanDefinitions)
+    return Result.success(candidates.get(0));
+  }
+
+  private Result<Object, FrameworkError> createInstance(
+      Class<?> type, Set<BeanDefinition> definitions) {
+    if (builtBeans.containsKey(type)) {
+      return Result.success(builtBeans.get(type));
+    }
+
+    if (currentlyBuilding.contains(type)) {
+      return Result.failure(
+          new FrameworkError.CircularDependencyDetected("Circular Dependency: " + type.getName()));
+    }
+
+    currentlyBuilding.add(type);
+    try {
+      Constructor<?>[] constructors = type.getDeclaredConstructors();
+      if (constructors.length == 0) {
+        return Result.failure(
+            new FrameworkError.BeanInstantiationFailed(
+                "No constructors found for " + type.getName(), null));
+      }
+      Constructor<?> constructor = constructors[0];
+      return resolveArguments(constructor.getParameters(), definitions)
           .flatMap(args -> instantiate(constructor, args))
           .map(
               instance -> {
-                builtBeans.put(clazz, instance);
+                builtBeans.put(type, instance);
                 return instance;
               });
-
     } finally {
-      currentlyBuilding.remove(clazz);
+      currentlyBuilding.remove(type);
     }
   }
 
-  private Result<Object[], DependencyError> resolveArguments(
-      Parameter[] parameters, Set<BeanDefinition> allBeanDefinitions) {
+  private Result<Object[], FrameworkError> resolveArguments(
+      Parameter[] parameters, Set<BeanDefinition> definitions) {
     List<Object> args = new ArrayList<>();
-    for (java.lang.reflect.Parameter param : parameters) {
-      Result<Object, DependencyError> result = resolveBean(param.getType(), allBeanDefinitions);
-      switch (result) {
-        case Result.Success<Object, DependencyError>(var value) -> args.add(value);
-        case Result.Failure<Object, DependencyError>(var error) -> {
+    for (Parameter param : parameters) {
+      switch (resolveBean(param.getType(), definitions)) {
+        case Result.Success<Object, FrameworkError>(var value) -> args.add(value);
+        case Result.Failure<Object, FrameworkError>(var error) -> {
           return Result.failure(error);
         }
       }
@@ -76,12 +107,12 @@ public class DependencyResolver {
     return Result.success(args.toArray());
   }
 
-  private Result<Object, DependencyError> instantiate(Constructor<?> constructor, Object[] args) {
+  private Result<Object, FrameworkError> instantiate(Constructor<?> constructor, Object[] args) {
     try {
       return Result.success(constructor.newInstance(args));
     } catch (Exception e) {
       return Result.failure(
-          new InstantiationFailed(
+          new FrameworkError.BeanInstantiationFailed(
               "Failed to build bean:" + constructor.getDeclaringClass().getName(), e));
     }
   }
