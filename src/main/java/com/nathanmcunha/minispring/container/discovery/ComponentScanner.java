@@ -2,8 +2,8 @@ package com.nathanmcunha.minispring.container.discovery;
 
 import com.nathanmcunha.minispring.annotations.Component;
 import com.nathanmcunha.minispring.common.Result;
-import com.nathanmcunha.minispring.error.ScanError;
-
+import com.nathanmcunha.minispring.error.FrameworkError;
+import com.nathanmcunha.minispring.error.FrameworkError.ScanFailed;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -16,7 +16,7 @@ public class ComponentScanner {
 
   private final Set<Class<?>> componentClasses = new HashSet<>();
 
-  public Result<Set<Class<?>>, ScanError> scanPackage(String packageName) {
+  public Result<Set<Class<?>>, FrameworkError> scanPackage(String packageName) {
     try {
       String path = packageName.replace(".", "/");
       ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -24,18 +24,19 @@ public class ComponentScanner {
       while (resources.hasMoreElements()) {
         URL resource = resources.nextElement();
         File directory = new File(resource.getFile());
-        Result<Void, ScanError> result = findClasses(directory, packageName);
-        if (result instanceof Result.Failure<Void, ScanError> failure) {
+        Result<Void, ScanFailed> result = findClasses(directory, packageName);
+        if (result instanceof Result.Failure<Void, ScanFailed> failure) {
           return Result.failure(failure.error());
         }
       }
       return Result.success(Set.copyOf(componentClasses));
     } catch (IOException | ClassNotFoundException e) {
-      return Result.failure(new ScanError("Failed to scan package: " + packageName, e));
+      return Result.failure(new ScanFailed("Failed to scan package: " + packageName, e));
     }
   }
 
-  private Result<Void, ScanError> findClasses(File directory, String packageName) throws ClassNotFoundException {
+  private Result<Void, ScanFailed> findClasses(File directory, String packageName)
+      throws ClassNotFoundException {
     if (!directory.exists()) {
       return Result.success(null);
     }
@@ -45,8 +46,9 @@ public class ComponentScanner {
     }
     for (File file : files) {
       if (file.isDirectory()) {
-        Result<Void, ScanError> result = findClasses(file, packageName.concat(".").concat(file.getName()));
-        if (result instanceof Result.Failure<Void, ScanError> failure) {
+        Result<Void, ScanFailed> result =
+            findClasses(file, packageName.concat(".").concat(file.getName()));
+        if (result instanceof Result.Failure<Void, ScanFailed> failure) {
           return Result.failure(failure.error());
         }
       } else if (file.getName().endsWith(".class")) {
