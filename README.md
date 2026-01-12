@@ -1,20 +1,21 @@
 # Mini-Spring Framework
 
-**Mini-Spring** is a lightweight, educational Java framework built from scratch. It mimics the core principles of the Spring Framework (Dependency Injection & Web MVC) but implements them using modern Java 21 features and a "Functional Core, Imperative Shell" architecture.
+**Mini-Spring** is a lightweight, educational Java framework built from scratch. It mimics the core principles of the Spring Framework (Dependency Injection & Web MVC) but implements them using modern Java 21 features and a **"Functional Core, Imperative Shell"** architecture.
 
-> **Goal:** To understand *how* frameworks work by building one, focusing on clean architecture, immutability, and functional programming patterns.
+> **Goal:** To understand *how* frameworks work by building one, focusing on clean architecture, immutability, and "Honest" functional programming patterns.
 
 ## 🚀 Key Features
 
 *   **Dependency Injection (DI) Container**:
-    *   Recursive dependency resolution.
-    *   Circular dependency detection.
-    *   Component scanning (finding `@Component` and `@Rest` beans).
+    *   **Robust Resolution**: Recursive dependency resolution with interface support and ambiguity detection.
+    *   **Circular Dependency Detection**: Prevents infinite recursion during bean instantiation.
+    *   **Component Scanning**: Automatic discovery of `@Component` and `@Rest` beans.
+    *   **Thread-Safe**: Registry backed by `ConcurrentHashMap` for safe runtime access.
 *   **Web MVC Layer**:
-    *   **Functional Design**: The `DispatcherServlet` uses a functional pipeline (`Result<T, E>`) to separate logic from side effects.
+    *   **Honest Functions**: Method signatures tell the whole truth. Control flow is handled via the `Result<T, E>` monad instead of exceptions.
     *   **Action-Based Routing**: Clean separation between `Router` (finding a handler) and `RouteAction` (executing it).
-    *   **Reflection-Based Mapping**: Automatically maps `@Get` and `@Post` methods to URL paths.
-*   **Modern Java**: Built with Java 21, utilizing Records, Sealed Interfaces, Virtual Threads, and Pattern Matching.
+    *   **Monadic Pipeline**: The `DispatcherServlet` uses a functional pipeline to process requests and handle errors.
+*   **Modern Java**: Built with Java 21, utilizing Records, Sealed Interfaces, Virtual Threads, and Pattern Matching for Switch.
 
 ## 🏗️ Architecture
 
@@ -22,17 +23,18 @@ This project deliberately avoids the standard "Service/Impl" package structure i
 
 ```text
 com.nathanmcunha.minispring
+├── common              # Shared primitives (Result Monad)
 ├── container           # The DI Engine
-│   ├── boot            # Context startup & lifecycle
-│   ├── wiring          # Dependency graph resolution logic
-│   ├── registry        # Bean storage & retrieval
-│   ├── discovery       # Classpath scanning
+│   ├── boot            # Context startup & lifecycle (MiniApplicationContext)
+│   ├── wiring          # Dependency graph resolution (DependencyResolver)
+│   ├── registry        # Bean storage & retrieval (DefaultBeanFactory)
+│   ├── discovery       # Classpath scanning (ComponentScanner)
 │   └── metadata        # BeanDefinition models
-└── server              # The Web Layer
-    ├── dispatch        # DispatcherServlet (Imperative Shell)
-    ├── router          # Routing logic (Functional Core)
-    ├── protocol        # HTTP models (Response, HttpStatus)
-    └── error           # Error handling types
+├── server              # The Web Layer
+│   ├── dispatch        # DispatcherServlet (Imperative Shell)
+│   │   └── protocol    # HTTP models (Response, HttpStatus)
+│   └── router          # Routing logic (Router, RouterRegistry)
+└── error               # Consolidated FrameworkError sealed hierarchy
 ```
 
 ## 🛠️ Getting Started
