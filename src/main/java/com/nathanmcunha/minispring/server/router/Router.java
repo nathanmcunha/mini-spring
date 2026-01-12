@@ -1,9 +1,9 @@
 package com.nathanmcunha.minispring.server.router;
 
-import java.util.Optional;
+import com.nathanmcunha.minispring.common.Result;
+import com.nathanmcunha.minispring.error.FrameworkError;
 import com.nathanmcunha.minispring.server.router.model.MethodHandler;
 
 public interface Router {
-
-  Optional<MethodHandler> getHandler(String verb, String path);
+  Result<MethodHandler, FrameworkError> getHandler(String verb, String path);
 }

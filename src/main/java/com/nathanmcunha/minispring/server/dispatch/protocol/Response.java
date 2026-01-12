@@ -1,4 +1,4 @@
-package com.nathanmcunha.minispring.server.protocol;
+package com.nathanmcunha.minispring.server.dispatch.protocol;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +17,8 @@ public record Response<T>(int statusCode, T body, Map<String, String> headers) {
     <T> Response<T> build();
   }
 
+  // TODO: Refactor this builder to be called like this:
+  // Response.Builder().status().body().header().build();
   public static DefaultBuilder Builder(int status) {
     return new DefaultBuilder(status);
   }
