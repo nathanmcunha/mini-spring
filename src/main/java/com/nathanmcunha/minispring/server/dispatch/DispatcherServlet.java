@@ -1,19 +1,18 @@
 package com.nathanmcunha.minispring.server.dispatch;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
-
 import com.nathanmcunha.minispring.common.Result;
-import com.nathanmcunha.minispring.error.ServerError;
-import com.nathanmcunha.minispring.server.protocol.HttpStatus;
-import com.nathanmcunha.minispring.server.protocol.Response;
+import com.nathanmcunha.minispring.error.FrameworkError;
+import com.nathanmcunha.minispring.server.dispatch.protocol.HttpStatus;
+import com.nathanmcunha.minispring.server.dispatch.protocol.Response;
 import com.nathanmcunha.minispring.server.router.RouteAction;
 import com.nathanmcunha.minispring.server.router.Router;
 import com.nathanmcunha.minispring.server.router.model.MethodHandler;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 
 /*
   Responsible to receive the http from the server and handle
@@ -31,11 +30,17 @@ public class DispatcherServlet implements HttpHandler {
     String verb = exchange.getRequestMethod();
     String path = exchange.getRequestURI().getPath();
 
-    Result<Response<?>, ServerError> result = router
-        .getHandler(verb, path)
-        .map(this::createExecutionAction)
-        .orElseGet(this::create404Action)
-        .perform(exchange);
+    // Pipeline:
+    // 1. Find Handler (or fail with RouteNotFound)
+    // 2. Convert Handler to Action (if found)
+    // 3. Fallback to 404 Action (if RouteNotFound)
+    // 4. Perform Action
+    Result<Response<?>, FrameworkError> result =
+        router
+            .getHandler(verb, path)
+            .map(this::createExecutionAction)
+            .orDefault(this::create404Action)
+            .perform(exchange);
 
     switch (result) {
       case Result.Success(var response) -> writeResponse(exchange, response);
@@ -52,15 +57,29 @@ public class DispatcherServlet implements HttpHandler {
     }
   }
 
-  private void handleError(HttpExchange exchange, ServerError error) throws IOException {
-    String message = "Error: " + error.exception();
+  private void handleError(HttpExchange exchange, FrameworkError error) throws IOException {
+    int statusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+    String message = "Internal Server Error";
+    Throwable cause = null;
+
+    if (error instanceof FrameworkError.RequestHandlingFailed failure) {
+      statusCode = failure.suggestedStatusCode();
+      cause = failure.exception();
+      message = "Error: " + cause;
+    } else {
+      message = "Error: " + error;
+    }
+
     byte[] responseBytes = message.getBytes(StandardCharsets.UTF_8);
-    exchange.sendResponseHeaders(error.suggestedStatusCode(), responseBytes.length);
+    exchange.sendResponseHeaders(statusCode, responseBytes.length);
     try (OutputStream responseBody = exchange.getResponseBody()) {
       responseBody.write(responseBytes);
     }
-    if (error.exception().getCause() != null) {
-      error.exception().getCause().printStackTrace();
+    
+    if (cause != null && cause.getCause() != null) {
+       cause.getCause().printStackTrace();
+    } else if (cause != null) {
+       cause.printStackTrace();
     }
   }
 
@@ -74,9 +93,12 @@ public class DispatcherServlet implements HttpHandler {
         return Result.success(Response.Builder(HttpStatus.OK.value()).body(result));
       } catch (InvocationTargetException e) {
         Exception cause = (Exception) e.getCause();
-        return Result.failure(new ServerError(cause, HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        return Result.failure(
+            new FrameworkError.RequestHandlingFailed(
+                cause, HttpStatus.INTERNAL_SERVER_ERROR.value()));
       } catch (Exception e) {
-        return Result.failure(new ServerError(e, HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        return Result.failure(
+            new FrameworkError.RequestHandlingFailed(e, HttpStatus.INTERNAL_SERVER_ERROR.value()));
       }
     };
   }
