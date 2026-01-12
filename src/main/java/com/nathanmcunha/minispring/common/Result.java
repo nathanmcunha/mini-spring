@@ -1,6 +1,7 @@
 package com.nathanmcunha.minispring.common;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -31,10 +32,10 @@ public sealed interface Result<T, E> {
     };
   }
 
-  default T orDefault(T other) {
+  default T orDefault(Supplier<T> other) {
     return switch (this) {
       case Success<T, E>(var value) -> value;
-      case Failure<T, E> f -> other;
+      case Failure<T, E> f -> other.get();
     };
   }
 
