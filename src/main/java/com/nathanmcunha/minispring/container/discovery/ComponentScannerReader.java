@@ -64,8 +64,11 @@ public class ComponentScannerReader implements BeanDefinitionReader {
 
   // For Simplify the framework now , assuming that a bean has a only one constructor
   private BeanDefinition createBeanDefinition(Class<?> clazz) {
-    // Safe to assume constructors exist for loaded classes, but good to be aware
-    return new BeanDefinition(clazz, clazz.getConstructors()[0].getParameterTypes());
+    var constructors = clazz.getDeclaredConstructors();
+    if (constructors.length == 0) {
+      return new BeanDefinition(clazz, new Class<?>[0]);
+    }
+    return new BeanDefinition(clazz, constructors[0].getParameterTypes());
   }
 
   private Result<Class<?>, FrameworkError> loadClass(Path root, Path file, String packageName) {
@@ -80,6 +83,9 @@ public class ComponentScannerReader implements BeanDefinitionReader {
   }
 
   private boolean isComponent(Class<?> clazz) {
+    if (clazz.isInterface() || clazz.isAnnotation()) {
+      return false;
+    }
     if (clazz.isAnnotationPresent(Component.class)) {
       return true;
     }

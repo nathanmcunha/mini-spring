@@ -58,9 +58,12 @@ public sealed interface Result<T, E> {
     A accumulator = collector.supplier().get();
     var biConsumer = collector.accumulator();
     for (T input : inputs) {
-      var result = mapper.apply(input);
-      if (result instanceof Failure<R, E>(var error)) return failure(error);
-      biConsumer.accept(accumulator, ((Success<R, E>) result).value());
+      switch (mapper.apply(input)) {
+        case Failure<R, E>(var error) -> {
+          return failure(error);
+        }
+        case Success<R, E>(var value) -> biConsumer.accept(accumulator, value);
+      }
     }
 
     return success(collector.finisher().apply(accumulator));

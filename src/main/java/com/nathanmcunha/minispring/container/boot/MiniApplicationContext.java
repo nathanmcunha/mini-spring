@@ -1,9 +1,8 @@
 package com.nathanmcunha.minispring.container.boot;
 
 import com.nathanmcunha.minispring.common.Result;
-import com.nathanmcunha.minispring.container.ApplicationContext;
-import com.nathanmcunha.minispring.container.BeanFactory;
 import com.nathanmcunha.minispring.container.discovery.ComponentScannerReader;
+import com.nathanmcunha.minispring.container.registry.BeanFactory;
 import com.nathanmcunha.minispring.container.registry.DefaultBeanFactory;
 import com.nathanmcunha.minispring.container.wiring.DependencyResolver;
 import com.nathanmcunha.minispring.error.FrameworkError;
@@ -21,16 +20,18 @@ public class MiniApplicationContext implements ApplicationContext {
   }
 
   public static Result<MiniApplicationContext, FrameworkError> boot(Class<?> config) {
+    return buildFactory(config)
+        .flatMap(
+            factory ->
+                RouterRegistry.create(factory)
+                    .map(router -> new MiniApplicationContext(factory, router)));
+  }
+
+  private static Result<BeanFactory, FrameworkError> buildFactory(Class<?> config) {
     return new ComponentScannerReader()
         .scan(config)
         .flatMap(definitions -> new DependencyResolver().resolve(definitions))
-        .flatMap(
-            beans -> {
-              var factory = new DefaultBeanFactory();
-              beans.forEach(factory::registerBean);
-              return RouterRegistry.create(factory)
-                  .map(router -> new MiniApplicationContext(factory, router));
-            });
+        .flatMap(beans -> new DefaultBeanFactory().registerBeans(beans));
   }
 
   @Override

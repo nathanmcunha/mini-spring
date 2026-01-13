@@ -1,7 +1,6 @@
 package com.nathanmcunha.minispring.container.registry;
 
 import com.nathanmcunha.minispring.common.Result;
-import com.nathanmcunha.minispring.container.BeanFactory;
 import com.nathanmcunha.minispring.error.FrameworkError;
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -15,14 +14,19 @@ and put in data structure
 **/
 public class DefaultBeanFactory implements BeanFactory {
 
-  private final Map<Class<?>, Object> registry = new java.util.concurrent.ConcurrentHashMap<>();
+  private final Map<Class<?>, Object> registry = new ConcurrentHashMap<>();
 
   @Override
-  public Result<Void, FrameworkError> registerBean(Class<?> clazz, Object instance) {
-    if (registry.putIfAbsent(clazz, instance) != null) {
-      return Result.failure(new FrameworkError.InvalidRouteDefinition("Bean already registered: " + clazz.getName()));
+  public Result<BeanFactory, FrameworkError> registerBeans(Map<Class<?>, Object> beans) {
+    for (var bean : beans.entrySet()) {
+      if (registry.putIfAbsent(bean.getKey(), bean.getValue()) != null) {
+        return Result.failure(
+            new FrameworkError.InvalidRouteDefinition(
+                "Bean already registered: " + bean.getKey().getName()));
+      }
     }
-    return Result.success(null);
+
+    return Result.success(this);
   }
 
   @Override

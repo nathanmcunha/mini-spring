@@ -4,7 +4,7 @@ import com.nathanmcunha.minispring.annotations.Get;
 import com.nathanmcunha.minispring.annotations.Post;
 import com.nathanmcunha.minispring.annotations.Rest;
 import com.nathanmcunha.minispring.common.Result;
-import com.nathanmcunha.minispring.container.BeanFactory;
+import com.nathanmcunha.minispring.container.registry.BeanFactory;
 import com.nathanmcunha.minispring.error.FrameworkError;
 import com.nathanmcunha.minispring.server.router.model.MethodHandler;
 import com.nathanmcunha.minispring.server.router.model.RouteKey;

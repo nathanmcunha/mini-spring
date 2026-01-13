@@ -76,10 +76,15 @@ public class DispatcherServlet implements HttpHandler {
       responseBody.write(responseBytes);
     }
     
-    if (cause != null && cause.getCause() != null) {
-       cause.getCause().printStackTrace();
-    } else if (cause != null) {
-       cause.printStackTrace();
+    if (cause != null) {
+      System.err.println("[DispatcherServlet] Request processing failed.");
+      System.err.println("  Error Details: " + message);
+      System.err.println("  Exception Stack Trace:");
+      // Unwrap InvocationTargetException if possible
+      Throwable realCause = (cause.getCause() != null) ? cause.getCause() : cause;
+      realCause.printStackTrace(System.err);
+    } else {
+      System.err.println("[DispatcherServlet] Request failed: " + error);
     }
   }
 

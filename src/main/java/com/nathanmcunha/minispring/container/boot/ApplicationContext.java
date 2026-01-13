@@ -1,5 +1,6 @@
-package com.nathanmcunha.minispring.container;
+package com.nathanmcunha.minispring.container.boot;
 
+import com.nathanmcunha.minispring.container.registry.BeanFactory;
 import com.nathanmcunha.minispring.server.router.RouterRegistry;
 import java.util.Optional;
 

@@ -8,13 +8,12 @@ import static org.mockito.Mockito.when;
 import com.nathanmcunha.minispring.annotations.Get;
 import com.nathanmcunha.minispring.annotations.Rest;
 import com.nathanmcunha.minispring.common.Result;
-import com.nathanmcunha.minispring.container.BeanFactory;
+import com.nathanmcunha.minispring.container.registry.BeanFactory;
 import com.nathanmcunha.minispring.error.FrameworkError;
 import com.nathanmcunha.minispring.server.dispatch.protocol.Response;
 import com.nathanmcunha.minispring.server.router.model.MethodHandler;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class RouteRegistryTest {
@@ -73,6 +72,7 @@ class RouteRegistryTest {
 
     var error = ((Result.Failure<RouterRegistry, FrameworkError>) result).error();
     assertTrue(error instanceof FrameworkError.ControllerBeanNotFound);
-    assertEquals(MissingController.class, ((FrameworkError.ControllerBeanNotFound) error).beanClass());
+    assertEquals(
+        MissingController.class, ((FrameworkError.ControllerBeanNotFound) error).beanClass());
   }
 }
