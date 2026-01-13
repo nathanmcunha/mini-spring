@@ -3,6 +3,7 @@
 **Mini-Spring** is a lightweight, educational Java framework built from scratch. It mimics the core principles of the Spring Framework (Dependency Injection & Web MVC) but implements them using modern Java 21 features and a **"Functional Core, Imperative Shell"** architecture.
 
 > **Goal:** To understand *how* frameworks work by building one, focusing on clean architecture, immutability, and "Honest" functional programming patterns.
+
 > **Disclaimer**: You can find some code inconsistencies, like using the switch pattern (beautiful stuff) and some others using 'if' statements. This is on purpose to serve as an example, because this project will be used for training in the future.
 
 ## 🚀 Key Features
