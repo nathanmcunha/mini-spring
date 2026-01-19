@@ -6,6 +6,7 @@
  */
 plugins {
    application
+   jacoco
 }
 
 repositories{
@@ -22,7 +23,6 @@ dependencies {
 }
 
 java {
-    // Trava a toolchain no Java 21 para garantir acesso às Virtual Threads
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
@@ -35,6 +35,15 @@ tasks.withType<JavaCompile> {
 
 tasks.test {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport) // Report is always generated after tests run
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test) // Tests are required to run before generating the report
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
 }
 
 application {
