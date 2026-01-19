@@ -4,6 +4,8 @@
 
 > **Goal:** To understand *how* frameworks work by building one, focusing on clean architecture, immutability, and "Honest" functional programming patterns.
 
+> **Disclaimer**: You can find some code inconsistencies, like using the switch pattern (beautiful stuff) and some others using 'if' statements. This is on purpose to serve as an example, because this project will be used for training in the future.
+
 ## 🚀 Key Features
 
 *   **Dependency Injection (DI) Container**:
