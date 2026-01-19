@@ -7,6 +7,10 @@ import com.nathanmcunha.minispring.common.Result;
 import com.nathanmcunha.minispring.container.metadata.BeanDefinition;
 import com.nathanmcunha.minispring.container.test_components.circular.CircularA;
 import com.nathanmcunha.minispring.container.test_components.circular.CircularB;
+import com.nathanmcunha.minispring.container.test_components.deep.ServiceA;
+import com.nathanmcunha.minispring.container.test_components.deep.ServiceB;
+import com.nathanmcunha.minispring.container.test_components.deep.ServiceC;
+import com.nathanmcunha.minispring.container.test_components.deep.ServiceD;
 import com.nathanmcunha.minispring.container.test_components.simple.MyTestComponent;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -42,7 +46,15 @@ class DependencyResolverTest {
         arguments(
             "Circular dependency detection between two beans",
             Set.of(def(CircularA.class), def(CircularB.class)),
-            false));
+            false),
+        arguments(
+            "Deep dependency graph (A->B->C->D)",
+            Set.of(
+                def(ServiceA.class),
+                def(ServiceB.class),
+                def(ServiceC.class),
+                def(ServiceD.class)),
+            true));
   }
 
   private static BeanDefinition def(Class<?> clazz) {

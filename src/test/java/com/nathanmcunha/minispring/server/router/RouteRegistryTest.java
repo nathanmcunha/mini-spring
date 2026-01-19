@@ -75,4 +75,26 @@ class RouteRegistryTest {
     assertEquals(
         MissingController.class, ((FrameworkError.ControllerBeanNotFound) error).beanClass());
   }
+
+  @Test
+  public void shouldFailOnDuplicateRoutes() {
+    BeanFactory factory = mock(BeanFactory.class);
+    when(factory.getBeansWithAnnotation(Rest.class))
+        .thenReturn(List.of(ControllerA.class, ControllerB.class));
+
+    when(factory.getBean(ControllerA.class)).thenReturn(Optional.of(new ControllerA()));
+    when(factory.getBean(ControllerB.class)).thenReturn(Optional.of(new ControllerB()));
+
+    var result = RouterRegistry.create(factory);
+    // 3. Assert Failure
+    assertTrue(result instanceof Result.Failure);
+    var error = ((Result.Failure<?, FrameworkError>) result).error();
+    System.out.println(error);
+
+    // 4. Validate Error Type
+    assertTrue(error instanceof FrameworkError.RouteCollision);
+    var collision = (FrameworkError.RouteCollision) error;
+    assertEquals("GET", collision.verb());
+    assertEquals("/conflict", collision.path());
+  }
 }

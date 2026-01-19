@@ -10,6 +10,7 @@ import com.nathanmcunha.minispring.container.test_components.di.DependecyOfMyAno
 import com.nathanmcunha.minispring.container.test_components.di.MyAnotherComponentTest;
 import com.nathanmcunha.minispring.container.test_components.simple.MyTestComponent;
 import com.nathanmcunha.minispring.container.test_components.simple.SimpleConfig;
+import com.nathanmcunha.minispring.error.FrameworkError;
 import org.junit.jupiter.api.Test;
 
 public class ApplicationContextTest {
@@ -44,5 +45,9 @@ public class ApplicationContextTest {
   public void shouldReturnFailureWhenCircularDependencyDetected() {
     var bootResult = MiniApplicationContext.boot(CircularConfig.class);
     assertTrue(bootResult instanceof Result.Failure, "Boot should not succeed");
+
+    var error = ((Result.Failure<?, FrameworkError>) bootResult).error();
+    assertTrue(error instanceof FrameworkError.CircularDependencyDetected,
+        "Expected CircularDependencyDetected error but got: " + error);
   }
 }
