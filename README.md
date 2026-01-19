@@ -16,7 +16,7 @@
 *   **Web MVC Layer**:
     *   **Honest Functions**: Method signatures tell the whole truth. Control flow is handled via the `Result<T, E>` monad instead of exceptions.
     *   **Action-Based Routing**: Clean separation between `Router` (finding a handler) and `RouteAction` (executing it).
-    *   **Monadic Pipeline**: The `DispatcherServlet` uses a functional pipeline to process requests and handle errors.
+    *   **Exhaustive Pattern Matching**: The `DispatcherServlet` leverages Java 21 switch expressions to explicitly handle every success and failure case (e.g., 404s, 500s) at the "End of the World".
 *   **Modern Java**: Built with Java 21, utilizing Records, Sealed Interfaces, Virtual Threads, and Pattern Matching for Switch.
 
 ## 🏗️ Architecture

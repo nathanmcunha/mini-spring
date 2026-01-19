@@ -37,18 +37,18 @@ public class DispatcherServlet implements HttpHandler {
 
     // Pipeline:
     // 1. Find Handler (or fail with RouteNotFound)
-    // 2. Convert Handler to Action (if found)
-    // 3. Fallback to 404 Action (if RouteNotFound)
-    // 4. Perform Action
+    // 2. Convert Handler to Action
+    // 3. Perform Action
     Result<Response<?>, FrameworkError> result =
         router
             .getHandler(verb, path)
             .map(this::createExecutionAction)
-            .orDefault(this::create404Action)
-            .perform(exchange);
+            .flatMap(action -> action.perform(exchange));
 
     switch (result) {
       case Result.Success(var response) -> writeResponse(exchange, response);
+      case Result.Failure(FrameworkError.RouteNotFound error) ->
+          writeResponse(exchange, Response.Builder(HttpStatus.NOT_FOUND.value()).build());
       case Result.Failure(var error) -> handleError(exchange, error);
     }
   }
@@ -85,9 +85,7 @@ public class DispatcherServlet implements HttpHandler {
       System.err.println("[DispatcherServlet] Request processing failed.");
       System.err.println("  Error Details: " + message);
       System.err.println("  Exception Stack Trace:");
-      // Unwrap InvocationTargetException if possible
-      Throwable realCause = (cause.getCause() != null) ? cause.getCause() : cause;
-      realCause.printStackTrace(System.err);
+      cause.printStackTrace(System.err);
     } else {
       System.err.println("[DispatcherServlet] Request failed: " + error);
     }
@@ -111,9 +109,5 @@ public class DispatcherServlet implements HttpHandler {
             new FrameworkError.RequestHandlingFailed(e, HttpStatus.INTERNAL_SERVER_ERROR.value()));
       }
     };
-  }
-
-  private RouteAction create404Action() {
-    return (exchange) -> Result.success(Response.Builder(HttpStatus.NOT_FOUND.value()).build());
   }
 }
