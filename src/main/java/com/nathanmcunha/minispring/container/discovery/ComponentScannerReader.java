@@ -16,8 +16,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Scans the classpath for classes that should be managed by the IoC container.
+ *
+ * <p>The scanning process starts from the package of the provided configuration class.
+ * Only classes within this package or its sub-packages are considered for discovery.
+ * To scan the entire project, the configuration class should be placed in the project's root package.</p>
+ */
 public class ComponentScannerReader implements BeanDefinitionReader {
 
+  /**
+   * Scans for components starting from the package of the specified configuration class.
+   *
+   * @param config The configuration class used as a base for scanning.
+   * @return A Result containing the set of discovered {@link BeanDefinition}s.
+   */
   public Result<Set<BeanDefinition>, FrameworkError> scan(Class<?> config) {
     try {
       String packageName = config.getPackageName();
@@ -33,8 +46,13 @@ public class ComponentScannerReader implements BeanDefinitionReader {
     }
   }
 
-  // this is responsible for I/O operation , basically is reading the folders looking for classes
-  // to be mapped/discovery
+  /**
+   * Recursively scans a specific classpath root for potential bean components.
+   *
+   * @param resource The URL representing the package directory in the classpath.
+   * @param packageName The base package name corresponding to this resource.
+   * @return A Result containing a set of discovered {@link BeanDefinition}s.
+   */
   private Result<Set<BeanDefinition>, FrameworkError> scanRoot(URL resource, String packageName) {
     try {
       Path root = Paths.get(resource.toURI());
@@ -62,7 +80,15 @@ public class ComponentScannerReader implements BeanDefinitionReader {
     }
   }
 
-  // For Simplify the framework now , assuming that a bean has a only one constructor
+  /**
+   * Creates a {@link BeanDefinition} for a given class.
+   *
+   * <p>Currently, the implementation assumes the class has a single constructor
+   * or uses the first declared constructor for dependency injection resolution.</p>
+   *
+   * @param clazz The class to create a definition for.
+   * @return A new {@link BeanDefinition} containing constructor metadata.
+   */
   private BeanDefinition createBeanDefinition(Class<?> clazz) {
     var constructors = clazz.getDeclaredConstructors();
     if (constructors.length == 0) {

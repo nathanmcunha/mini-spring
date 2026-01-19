@@ -8,10 +8,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-/*
-This class is responsible to create a registry with the beans
-and put in data structure
-**/
+/**
+ * Default implementation of {@link BeanFactory} that stores bean instances in a concurrent map.
+ *
+ * <p>This implementation provides thread-safe access to managed beans and supports
+ * registration of a batch of beans at once.</p>
+ */
 public class DefaultBeanFactory implements BeanFactory {
 
   private final Map<Class<?>, Object> registry = new ConcurrentHashMap<>();

@@ -13,10 +13,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/*
-  Responsible to do the wire and check the dependecies between beans
-  e.g: If a Rest class depends a Service class this will be resolved here
-**/
+/**
+ * Orchestrates the instantiation and wiring of beans based on their definitions.
+ *
+ * <p>This resolver performs a recursive depth-first resolution of dependencies,
+ * ensuring that all required arguments for a bean's constructor are instantiated
+ * and available before the bean itself is created.</p>
+ *
+ * <p>It also includes safeguards against circular dependencies.</p>
+ */
 public class DependencyResolver {
   private final Map<Class<?>, Object> builtBeans = new HashMap<>();
   private final Set<Class<?>> currentlyBuilding = new HashSet<>();

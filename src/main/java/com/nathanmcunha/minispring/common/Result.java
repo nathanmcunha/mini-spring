@@ -5,6 +5,12 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
+/**
+ * A monad-like container that represents either a successful computation or a failure.
+ *
+ * @param <T> The type of the value in case of success.
+ * @param <E> The type of the error in case of failure.
+ */
 public sealed interface Result<T, E> {
   record Success<T, E>(T value) implements Result<T, E> {}
 
@@ -18,6 +24,13 @@ public sealed interface Result<T, E> {
     return new Failure<>(error);
   }
 
+  /**
+   * Transforms the successful value of this result using the provided mapper.
+   *
+   * @param <U> The new success type.
+   * @param mapper The function to apply to the success value.
+   * @return A new result containing the transformed value, or the original error.
+   */
   default <U> Result<U, E> map(Function<T, U> mapper) {
     return switch (this) {
       case Success<T, E>(var value) -> success(mapper.apply(value));
@@ -25,6 +38,13 @@ public sealed interface Result<T, E> {
     };
   }
 
+  /**
+   * Chains another result-producing computation to this result.
+   *
+   * @param <U> The new success type.
+   * @param mapper The function to apply to the success value.
+   * @return The result of the chained computation, or the original error.
+   */
   default <U> Result<U, E> flatMap(Function<T, Result<U, E>> mapper) {
     return switch (this) {
       case Success<T, E>(var value) -> mapper.apply(value);
@@ -32,6 +52,12 @@ public sealed interface Result<T, E> {
     };
   }
 
+  /**
+   * Returns the success value or a default value provided by the supplier if this is a failure.
+   *
+   * @param other The supplier of the default value.
+   * @return The success value or the default value.
+   */
   default T orDefault(Supplier<T> other) {
     return switch (this) {
       case Success<T, E>(var value) -> value;
@@ -53,6 +79,10 @@ public sealed interface Result<T, E> {
     };
   }
 
+  /**
+   * Transforms multiple inputs into a single Result containing a collection of values. If any
+   * individual mapping fails, the entire traversal fails with the first error encountered.
+   */
   public static <T, R, E, A, C> Result<C, E> traverse(
       Iterable<T> inputs, Function<T, Result<R, E>> mapper, Collector<R, A, C> collector) {
     A accumulator = collector.supplier().get();

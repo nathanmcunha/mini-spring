@@ -15,6 +15,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+/**
+ * An immutable registry that maps {@link RouteKey}s to {@link MethodHandler}s.
+ *
+ * <p>The registry is built by scanning beans annotated with {@code @Rest} 
+ * and identifying methods annotated with {@code @Get} or {@code @Post}.</p>
+ */
 public class RouterRegistry implements Router {
 
   private final Map<RouteKey, MethodHandler> routes;
@@ -23,6 +29,12 @@ public class RouterRegistry implements Router {
     this.routes = routes;
   }
 
+  /**
+   * Factory method to create a new RouterRegistry from a {@link BeanFactory}.
+   * 
+   * @param factory The bean factory containing the controller beans.
+   * @return A Result containing the built registry, or an error if collisions or missing beans are found.
+   */
   public static Result<RouterRegistry, FrameworkError> create(final BeanFactory factory) {
     return buildRouteRegistry(factory).map(RouterRegistry::new);
   }

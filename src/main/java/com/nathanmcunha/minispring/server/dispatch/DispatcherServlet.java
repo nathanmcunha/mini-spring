@@ -14,9 +14,14 @@ import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 
-/*
-  Responsible to receive the http from the server and handle
-**/
+/**
+ * The primary entry point for HTTP requests, acting as the Front Controller for the framework.
+ *
+ * <p>The DispatcherServlet receives {@link HttpExchange} objects from the server,
+ * consults the {@link Router} to find a matching handler, and coordinates the execution
+ * of the associated controller method. It is also responsible for writing the
+ * final response and handling any framework-level errors that occur during processing.</p>
+ */
 public class DispatcherServlet implements HttpHandler {
 
   private final Router router;
