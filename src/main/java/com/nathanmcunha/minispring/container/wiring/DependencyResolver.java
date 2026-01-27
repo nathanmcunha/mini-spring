@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 /**
  * Orchestrates the instantiation and wiring of beans based on their definitions.
  *
- * <p>This resolver performs a recursive depth-first resolution of dependencies,
- * ensuring that all required arguments for a bean's constructor are instantiated
- * and available before the bean itself is created.</p>
+ * <p>This resolver performs a recursive depth-first resolution of dependencies, ensuring that all
+ * required arguments for a bean's constructor are instantiated and available before the bean itself
+ * is created.
  *
- * <p>It also includes safeguards against circular dependencies.</p>
+ * <p>It also includes safeguards against circular dependencies.
  */
 public class DependencyResolver {
   private final Map<Class<?>, Object> builtBeans = new HashMap<>();

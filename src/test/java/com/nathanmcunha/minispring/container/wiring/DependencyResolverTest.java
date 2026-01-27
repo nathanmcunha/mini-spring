@@ -12,8 +12,14 @@ import com.nathanmcunha.minispring.container.test_components.deep.ServiceB;
 import com.nathanmcunha.minispring.container.test_components.deep.ServiceC;
 import com.nathanmcunha.minispring.container.test_components.deep.ServiceD;
 import com.nathanmcunha.minispring.container.test_components.simple.MyTestComponent;
+import com.nathanmcunha.minispring.container.test_components.wiring.AmbiguousDependencyTest;
+import com.nathanmcunha.minispring.container.test_components.wiring.BeanDependingOnMissingDependency;
+import com.nathanmcunha.minispring.container.test_components.wiring.BeanWithPrivateConstructor;
+import com.nathanmcunha.minispring.container.test_components.wiring.MissingDependencyTest;
+import com.nathanmcunha.minispring.error.FrameworkError;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -50,14 +56,48 @@ class DependencyResolverTest {
         arguments(
             "Deep dependency graph (A->B->C->D)",
             Set.of(
-                def(ServiceA.class),
-                def(ServiceB.class),
-                def(ServiceC.class),
-                def(ServiceD.class)),
+                def(ServiceA.class), def(ServiceB.class), def(ServiceC.class), def(ServiceD.class)),
             true));
   }
 
   private static BeanDefinition def(Class<?> clazz) {
     return new BeanDefinition(clazz, clazz.getDeclaredConstructors()[0].getParameterTypes());
+  }
+
+  @Test
+  void shouldFailWhenAmbiguousDependencyDetected() {
+    var result =
+        new DependencyResolver()
+            .resolve(
+                Set.of(
+                    def(AmbiguousDependencyTest.ImplementationA.class),
+                    def(AmbiguousDependencyTest.ImplementationB.class),
+                    def(AmbiguousDependencyTest.BeanDependingOnAmbiguousInterface.class)));
+
+    assertTrue(result instanceof Result.Failure);
+    var error = ((Result.Failure<?, FrameworkError>) result).error();
+    assertTrue(error instanceof FrameworkError.AmbiguousDependency);
+  }
+
+  @Test
+  void shouldFailWhenBeanInstantiationFails() {
+    var result = new DependencyResolver().resolve(Set.of(def(BeanWithPrivateConstructor.class)));
+
+    assertTrue(result instanceof Result.Failure);
+    var error = ((Result.Failure<?, FrameworkError>) result).error();
+    assertTrue(error instanceof FrameworkError.BeanInstantiationFailed);
+  }
+
+  @Test
+  void shouldFailWhenDependencyNotFound() {
+    var result =
+        new DependencyResolver()
+            .resolve(
+                Set.of(
+                    def(MissingDependencyTest.class), def(BeanDependingOnMissingDependency.class)));
+
+    assertTrue(result instanceof Result.Failure);
+    var error = ((Result.Failure<?, FrameworkError>) result).error();
+    assertTrue(error instanceof FrameworkError.MissingDependency);
   }
 }

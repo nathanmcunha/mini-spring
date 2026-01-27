@@ -104,6 +104,10 @@ public class DispatcherServlet implements HttpHandler {
         return Result.failure(
             new FrameworkError.RequestHandlingFailed(
                 cause, HttpStatus.INTERNAL_SERVER_ERROR.value()));
+      } catch (IllegalAccessException e) {
+        return Result.failure(
+            new FrameworkError.RequestHandlingFailed(
+                e, HttpStatus.INTERNAL_SERVER_ERROR.value()));
       } catch (Exception e) {
         return Result.failure(
             new FrameworkError.RequestHandlingFailed(e, HttpStatus.INTERNAL_SERVER_ERROR.value()));

@@ -76,7 +76,7 @@ public class DispatcherServerTest {
   }
 
   @Test
-  void dispatchWhenRouteNotFound_Return404() throws IOException {
+  void Dispatchwhenroutenotfound_Return404() throws IOException {
     servlet = new DispatcherServlet(router);
 
     when(exchange.getRequestURI()).thenReturn(URI.create("/unknown"));

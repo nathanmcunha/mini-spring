@@ -5,8 +5,8 @@
  * Learn more about Gradle by exploring our Samples at https://docs.gradle.org/9.2.1/samples
  */
 plugins {
-   application
-   jacoco
+  application
+    jacoco
 }
 
 repositories{
