@@ -24,7 +24,7 @@ dependencies {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(25))
     }
 }
 
@@ -35,6 +35,7 @@ tasks.withType<JavaCompile> {
 
 tasks.test {
     useJUnitPlatform()
+jvmArgs("--enable-preview")
     finalizedBy(tasks.jacocoTestReport) // Report is always generated after tests run
 }
 

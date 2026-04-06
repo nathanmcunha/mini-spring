@@ -27,4 +27,6 @@ public sealed interface FrameworkError {
   // Server Errors
   record RequestHandlingFailed(Exception exception, int suggestedStatusCode)
       implements FrameworkError {}
+
+  record JsonConversionFailed(String message, Exception exception) implements FrameworkError {}
 }

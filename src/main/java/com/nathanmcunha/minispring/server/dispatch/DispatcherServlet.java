@@ -1,5 +1,6 @@
 package com.nathanmcunha.minispring.server.dispatch;
 
+import com.nathanmcunha.minispring.common.JsonSerializer;
 import com.nathanmcunha.minispring.common.Result;
 import com.nathanmcunha.minispring.error.FrameworkError;
 import com.nathanmcunha.minispring.server.dispatch.protocol.HttpStatus;
@@ -17,14 +18,15 @@ import java.nio.charset.StandardCharsets;
 /**
  * The primary entry point for HTTP requests, acting as the Front Controller for the framework.
  *
- * <p>The DispatcherServlet receives {@link HttpExchange} objects from the server,
- * consults the {@link Router} to find a matching handler, and coordinates the execution
- * of the associated controller method. It is also responsible for writing the
- * final response and handling any framework-level errors that occur during processing.</p>
+ * <p>The DispatcherServlet receives {@link HttpExchange} objects from the server, consults the
+ * {@link Router} to find a matching handler, and coordinates the execution of the associated
+ * controller method. It is also responsible for writing the final response and handling any
+ * framework-level errors that occur during processing.
  */
 public class DispatcherServlet implements HttpHandler {
 
   private final Router router;
+  private final JsonSerializer jsonSerializer = new JsonSerializer();
 
   public DispatcherServlet(final Router router) {
     this.router = router;
@@ -80,7 +82,7 @@ public class DispatcherServlet implements HttpHandler {
     try (OutputStream responseBody = exchange.getResponseBody()) {
       responseBody.write(responseBytes);
     }
-    
+
     if (cause != null) {
       System.err.println("[DispatcherServlet] Request processing failed.");
       System.err.println("  Error Details: " + message);
@@ -106,8 +108,7 @@ public class DispatcherServlet implements HttpHandler {
                 cause, HttpStatus.INTERNAL_SERVER_ERROR.value()));
       } catch (IllegalAccessException e) {
         return Result.failure(
-            new FrameworkError.RequestHandlingFailed(
-                e, HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            new FrameworkError.RequestHandlingFailed(e, HttpStatus.INTERNAL_SERVER_ERROR.value()));
       } catch (Exception e) {
         return Result.failure(
             new FrameworkError.RequestHandlingFailed(e, HttpStatus.INTERNAL_SERVER_ERROR.value()));
